@@ -70,12 +70,12 @@ def web_search(objective: str, search_queries: list[str]) -> str:
     return _run_tool('web_search', {'objective': objective, 'search_queries': search_queries})
 
 
-def web_fetch(urls: list[str], objective: str = '') -> str:
+def web_fetch(urls: list[str], objective: str) -> str:
     """Read excerpts from up to 20 HTTP(S) pages, preserving source URLs.
 
     Args:
         urls: The web page URLs to read, such as sources returned by web_search.
-        objective: Optional description of relevant information, up to 200 characters.
+        objective: Description of relevant information, up to 200 characters; use an empty string for general excerpts.
 
     Returns:
         Page excerpts and their source URLs for the agent to analyze and cite.

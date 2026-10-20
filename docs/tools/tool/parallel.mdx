@@ -18,7 +18,8 @@ agentstack tools add parallel
 This installs the MCP client and adds `web_search` and `web_fetch` to your agents.
 Use `--agent researcher` to restrict the tool to one agent. The tools return source
 URLs and excerpts for the agent to analyze and cite. `web_fetch` accepts up to 20
-HTTP(S) URLs and an optional objective of up to 200 characters. Requests time out
+HTTP(S) URLs and an objective of up to 200 characters. Pass an empty objective
+string for general excerpts. Requests time out
 after 30 seconds; service errors propagate to the framework without switching
 providers or retrying automatically.
 

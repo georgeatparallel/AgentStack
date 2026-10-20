@@ -126,7 +126,9 @@ def test_search_fetch_and_followup_reach_consumer(project, server):
     app = dispatcher()
     with search_session():
         assert 'https://example.com/research' in invoke(app)
-        assert 'Page excerpt' in invoke(app, 'web_fetch', {'urls': ['https://example.com/research']})
+        assert 'Page excerpt' in invoke(
+            app, 'web_fetch', {'urls': ['https://example.com/research'], 'objective': ''}
+        )
         invoke(app)
     assert [call['name'] for call in calls(server)] == ['web_search', 'web_fetch', 'web_search']
     assert len({call['arguments']['session_id'] for call in calls(server)}) == 1
@@ -140,7 +142,7 @@ def test_new_and_concurrent_conversations_use_distinct_ids(project, server):
     def conversation():
         with search_session():
             invoke(app)
-            invoke(app, 'web_fetch', {'urls': ['https://example.com/research']})
+            invoke(app, 'web_fetch', {'urls': ['https://example.com/research'], 'objective': ''})
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         list(executor.map(lambda _: conversation(), range(2)))
@@ -161,7 +163,7 @@ def test_cli_starts_new_session_and_reuses_it_within_run(project, server):
         'def run():\n'
         '    app = dispatcher()\n'
         '    invoke(app)\n'
-        '    invoke(app, "web_fetch", {"urls": ["https://example.com/research"]})\n'
+        '    invoke(app, "web_fetch", {"urls": ["https://example.com/research"], "objective": ""})\n'
     )
     run_project()
     run_project()
@@ -241,14 +243,20 @@ def test_structured_content_is_consumed(project, server):
     [
         ('web_search', {'objective': '', 'search_queries': ['research']}),
         ('web_search', {'objective': 'research', 'search_queries': []}),
-        ('web_fetch', {'urls': ['file:///etc/passwd']}),
-        ('web_fetch', {'urls': []}),
+        ('web_fetch', {'urls': ['file:///etc/passwd'], 'objective': ''}),
+        ('web_fetch', {'urls': [], 'objective': ''}),
         ('web_fetch', {'urls': ['https://example.com'], 'objective': 'x' * 201}),
     ],
 )
 def test_invalid_input_never_contacts_server(project, server, name, arguments):
     with pytest.raises(ValueError):
         invoke(dispatcher(), name, arguments)
+    assert server[0] == []
+
+
+def test_missing_fetch_objective_fails_native_schema(project, server):
+    with pytest.raises(Exception, match='objective'):
+        invoke(dispatcher(), 'web_fetch', {'urls': ['https://example.com']})
     assert server[0] == []
 
 
